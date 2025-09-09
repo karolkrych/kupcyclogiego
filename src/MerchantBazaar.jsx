@@ -38,6 +38,43 @@ function formatNum(n) {
   return Number(n).toLocaleString("pl-PL", { maximumFractionDigits: 2 });
 }
 
+// --- Waluta: 1 zk = 20 ss ---
+const SS_PER_ZK = 20;
+
+// z { zk, ss } (mieszane „wiaderko”) robi czytelne części i znak
+function partsFromBuckets(buckets) {
+  const zk = Number(buckets?.zk || 0);
+  const ss = Number(buckets?.ss || 0);
+  const totalSs = Math.round(zk * SS_PER_ZK + ss);
+  const negative = totalSs < 0;
+  const abs = Math.abs(totalSs);
+  return {
+    negative,
+    zk: Math.floor(abs / SS_PER_ZK),
+    ss: abs % SS_PER_ZK,
+  };
+}
+
+// format tekstowy „X zk Y ss” z uwzględnieniem znaku
+function formatBucketsAsZkSs(buckets) {
+  const { negative, zk, ss } = partsFromBuckets(buckets);
+  const parts = [];
+  if (zk) parts.push(`${zk} zk`);
+  if (ss) parts.push(`${ss} ss`);
+  if (!zk && !ss) parts.push("0");
+  return (negative ? "−" : "") + parts.join(" ");
+}
+
+// „badge” jak coinSpan, ale dla tekstu już złożonego „X zk Y ss”
+function coinBadge(text) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-amber-900/30 bg-amber-100/60 px-2 py-0.5 text-sm text-amber-900">
+      <Coins className="h-4 w-4" /> {text}
+    </span>
+  );
+}
+
+
 function coinSpan(value, unit) {
   return (
     <span className="inline-flex items-center gap-1 rounded-full border border-amber-900/30 bg-amber-100/60 px-2 py-0.5 text-sm text-amber-900">
@@ -223,8 +260,7 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
           <div className="inline-flex items-center gap-2 rounded-xl border border-amber-900/30 bg-amber-100/70 px-3 py-1.5">
             <Scale className="h-4 w-4" /> Waga karawany kupca: {formatNum(data.total_weight)} kg
           </div>
-          {coinSpan(totals.zk, "zk")}
-          {coinSpan(totals.ss, "ss")}
+          {coinBadge(formatBucketsAsZkSs(totals))}
         </div>
         {loading && (
           <p className="mt-3 text-amber-900">Ładowanie danych z targu...</p>
@@ -274,7 +310,13 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
           footer={
             <div className="flex flex-wrap items-center justify-end gap-3">
               <span className="text-sm">Waga zakupów: {formatNum(totalWeightBuy)} kg</span>
-              <span className="ml-2 text-sm">Suma: {coinSpan(Math.abs(totals.zk) + 0, "zk")} {coinSpan(Math.abs(totals.ss) + 0, "ss")}</span>
+              <span className="ml-2 text-sm">
+                Suma: {coinBadge(
+                  formatBucketsAsZkSs({
+                    zk: Math.abs(totals.zk || 0),
+                    ss: Math.abs(totals.ss || 0),
+                  })
+                )}</span>
             </div>
           }
         />
@@ -317,7 +359,14 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
           footer={
             <div className="flex flex-wrap items-center justify-end gap-3">
               <span className="text-sm">Saldo po transakcjach (ujemne = płacisz, dodatnie = zarabiasz):</span>
-              {coinSpan(totals.zk, "zk")} {coinSpan(totals.ss, "ss")}
+              footer={
+                <div className="flex flex-wrap items-center justify-end gap-3">
+                  <span className="text-sm">
+                    Saldo po transakcjach (ujemne = płacisz, dodatnie = zarabiasz):
+                  </span>
+                  {coinBadge(formatBucketsAsZkSs(totals))}
+                </div>
+              }
             </div>
           }
         />
