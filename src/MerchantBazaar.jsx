@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Minus, Plus, RefreshCcw, Scale, Coins, ShoppingCart, PackageSearch } from "lucide-react";
+import pergamin from "./assets/pergamin.svg";
+
 
 /**
  * Kupcy Baniaka – single-file React UI
@@ -21,7 +23,10 @@ const Section = ({ title, icon, children }) => (
     variants={frame}
     initial="hidden"
     animate="show"
-    className="relative rounded-2xl border border-amber-900/40 bg-amber-100 p-4 md:p-6 shadow-sm"
+    style={{ backgroundImage: `url(${pergamin})` }}
+    className="relative rounded-2xl border border-amber-900/40 bg-amber-100 bg-repeat [background-size:220px_220px] p-4 md:p-6 shadow-sm
+               before:content-[''] before:absolute before:inset-0 before:rounded-2xl before:pointer-events-none
+               before:shadow-[inset_0_0_0_1px_rgba(120,53,15,0.2),inset_0_12px_28px_rgba(120,53,15,0.08)]"
   >
     <div className="mb-4 flex items-center gap-3 text-amber-900">
       <div className="shrink-0 rounded-xl bg-amber-900/10 p-2">{icon}</div>
