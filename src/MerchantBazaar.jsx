@@ -21,7 +21,8 @@ const Section = ({ title, icon, children }) => (
     variants={frame}
     initial="hidden"
     animate="show"
-    className="relative rounded-2xl border border-amber-900/40 bg-[url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><defs><pattern id=\"p\" width=\"64\" height=\"64\" patternUnits=\"userSpaceOnUse\"><path d=\"M0 63.5h64M63.5 0v64\" stroke=\"%23b45309\" stroke-opacity=\".15\"/></pattern></defs><rect width=\"100%\" height=\"100%\" fill=\"%23fef3c7\"/><rect width=\"100%\" height=\"100%\" fill=\"url(%23p)\"/></svg>')] bg-[length:220px_220px] p-4 md:p-6 shadow-sm">
+    className="relative rounded-2xl border border-amber-900/40 bg-amber-100 p-4 md:p-6 shadow-sm"
+  >
     <div className="mb-4 flex items-center gap-3 text-amber-900">
       <div className="shrink-0 rounded-xl bg-amber-900/10 p-2">{icon}</div>
       <h2 className="font-serif text-2xl md:text-3xl tracking-tight drop-shadow-sm">
@@ -31,6 +32,7 @@ const Section = ({ title, icon, children }) => (
     <div>{children}</div>
   </motion.section>
 );
+
 
 function formatNum(n) {
   return Number(n).toLocaleString("pl-PL", { maximumFractionDigits: 2 });
@@ -132,7 +134,7 @@ const sample = {
   total_weight: 83900,
 };
 
-export default function MerchantBazaar({ apiUrl = "/api/merchant" }) {
+export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanywhere.com/" }) {
   const [data, setData] = useState(sample);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
