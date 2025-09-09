@@ -41,23 +41,17 @@ function formatNum(n) {
 // --- Waluta: 1 zk = 20 ss ---
 const SS_PER_ZK = 20;
 
-// z { zk, ss } (mieszane „wiaderko”) robi czytelne części i znak
-function partsFromBuckets(buckets) {
-  const zk = Number(buckets?.zk || 0);
-  const ss = Number(buckets?.ss || 0);
+function partsFromBuckets(b) {
+  const zk = Number(b?.zk || 0);
+  const ss = Number(b?.ss || 0);
   const totalSs = Math.round(zk * SS_PER_ZK + ss);
   const negative = totalSs < 0;
   const abs = Math.abs(totalSs);
-  return {
-    negative,
-    zk: Math.floor(abs / SS_PER_ZK),
-    ss: abs % SS_PER_ZK,
-  };
+  return { negative, zk: Math.floor(abs / SS_PER_ZK), ss: abs % SS_PER_ZK };
 }
 
-// format tekstowy „X zk Y ss” z uwzględnieniem znaku
-function formatBucketsAsZkSs(buckets) {
-  const { negative, zk, ss } = partsFromBuckets(buckets);
+function formatBucketsAsZkSs(b) {
+  const { negative, zk, ss } = partsFromBuckets(b);
   const parts = [];
   if (zk) parts.push(`${zk} zk`);
   if (ss) parts.push(`${ss} ss`);
@@ -65,7 +59,6 @@ function formatBucketsAsZkSs(buckets) {
   return (negative ? "−" : "") + parts.join(" ");
 }
 
-// „badge” jak coinSpan, ale dla tekstu już złożonego „X zk Y ss”
 function coinBadge(text) {
   return (
     <span className="inline-flex items-center gap-1 rounded-full border border-amber-900/30 bg-amber-100/60 px-2 py-0.5 text-sm text-amber-900">
@@ -73,7 +66,6 @@ function coinBadge(text) {
     </span>
   );
 }
-
 
 function coinSpan(value, unit) {
   return (
@@ -203,23 +195,38 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiUrl]);
 
-  // Totals by currency
-  const totals = useMemo(() => {
+  // ile płacisz kupcowi za jego towary (sekcja for_sell)
+  const payTotals = useMemo(() => {
     const sum = { zk: 0, ss: 0 };
-    // Buying from merchant (for_sell)
     data.for_sell.forEach((item, idx) => {
-      const q = buyQty[idx] || 0;
+      const q = Number(buyQty[idx] || 0);
       const price = Number(item.real_price || 0);
-      sum[item.price_unit] = (sum[item.price_unit] || 0) + q * price;
-    });
-    // Selling to merchant (buy_offers) – income for player
-    data.buy_offers.forEach((item, idx) => {
-      const q = sellQty[idx] || 0;
-      const price = Number(item.real_price || 0);
-      sum[item.price_unit] = (sum[item.price_unit] || 0) - q * price; // minus because we receive coins
+      const v = q * price;
+      if (item.price_unit === "zk") sum.zk += v;
+      else sum.ss += v; // "ss"
     });
     return sum;
-  }, [data, buyQty, sellQty]);
+  }, [data, buyQty]);
+
+  // ile kupiec płaci Tobie za Twoje towary (sekcja buy_offers)
+  const receiveTotals = useMemo(() => {
+    const sum = { zk: 0, ss: 0 };
+    data.buy_offers.forEach((item, idx) => {
+      const q = Number(sellQty[idx] || 0);
+      const price = Number(item.real_price || 0);
+      const v = q * price;
+      if (item.price_unit === "zk") sum.zk += v;
+      else sum.ss += v;
+    });
+    return sum;
+  }, [data, sellQty]);
+
+  // bilans = receive − pay (w szelągach i z powrotem)
+  const netTotals = useMemo(() => {
+    const toSs = (b) => Math.round((Number(b.zk || 0) * SS_PER_ZK) + Number(b.ss || 0));
+    const diffSs = toSs(receiveTotals) - toSs(payTotals);
+    return { zk: diffSs / SS_PER_ZK, ss: 0 }; // formatter zamieni na X zk Y ss
+  }, [receiveTotals, payTotals]);
 
   const totalWeightBuy = useMemo(() => {
     let w = 0;
@@ -260,7 +267,7 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
           <div className="inline-flex items-center gap-2 rounded-xl border border-amber-900/30 bg-amber-100/70 px-3 py-1.5">
             <Scale className="h-4 w-4" /> Waga karawany kupca: {formatNum(data.total_weight)} kg
           </div>
-          {coinBadge(formatBucketsAsZkSs(totals))}
+          {coinBadge(formatBucketsAsZkSs(netTotals))}
         </div>
         {loading && (
           <p className="mt-3 text-amber-900">Ładowanie danych z targu...</p>
@@ -311,12 +318,8 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
             <div className="flex flex-wrap items-center justify-end gap-3">
               <span className="text-sm">Waga zakupów: {formatNum(totalWeightBuy)} kg</span>
               <span className="ml-2 text-sm">
-                Suma: {coinBadge(
-                  formatBucketsAsZkSs({
-                    zk: Math.abs(totals.zk || 0),
-                    ss: Math.abs(totals.ss || 0),
-                  })
-                )}</span>
+                Do zapłaty kupcowi: {coinBadge(formatBucketsAsZkSs(payTotals))}
+              </span>
             </div>
           }
         />
@@ -358,15 +361,8 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
           ])}
           footer={
             <div className="flex flex-wrap items-center justify-end gap-3">
-              <span className="text-sm">Saldo po transakcjach (ujemne = płacisz, dodatnie = zarabiasz):</span>
-              footer={
-                <div className="flex flex-wrap items-center justify-end gap-3">
-                  <span className="text-sm">
-                    Saldo po transakcjach (ujemne = płacisz, dodatnie = zarabiasz):
-                  </span>
-                  {coinBadge(formatBucketsAsZkSs(totals))}
-                </div>
-              }
+              <span className="text-sm">Należność dla Ciebie:</span>
+              {coinBadge(formatBucketsAsZkSs(receiveTotals))}
             </div>
           }
         />
@@ -374,9 +370,7 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
 
       <footer className="mt-8 text-center text-xs text-amber-900/70">
         <p>
-          © Karczma „U Cierpliwego Kompilatora”. Interfejs inspirowany pergaminem i
-          gildią kupiecką. Wszystkie ceny w {""}
-          <span className="font-semibold">zk</span> / <span className="font-semibold">ss</span>.
+          © Karczma „Moxi”. Interfejs inspirowany pergaminem i Lochportem.
         </p>
       </footer>
     </div>
