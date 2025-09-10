@@ -45,6 +45,17 @@ function formatNum(n) {
   return Number(n).toLocaleString("pl-PL", { maximumFractionDigits: 2 });
 }
 
+// === MODYFIKATORY CEN ===
+const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+const parseMod = (s) => {
+  if (typeof s === "number") return Math.round(s);
+  const m = String(s || "0").match(/[-+]?[\d]+/);
+  return m ? Number(m[0]) : 0;
+};
+const fmtMod = (m) => `${m >= 0 ? "+" : ""}${m}%`;
+const realFrom = (market, mod) => Number(market) * (1 + Number(mod) / 100);
+
+
 // --- Waluta: 1 zk = 20 ss ---
 const SS_PER_ZK = 20;
 
@@ -179,6 +190,34 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
   const [buyQty, setBuyQty] = useState({}); // player buys merchant's goods (for_sell)
   const [sellQty, setSellQty] = useState({}); // player sells goods to merchant (buy_offers)
 
+    // % dla wierszy: osobno dla sekcji "for_sell" i "buy_offers"
+  const [modsSell, setModsSell] = useState([]); // indeks = idx z data.for_sell
+  const [modsBuy, setModsBuy]   = useState([]); // indeks = idx z data.buy_offers
+
+  // Ustaw wartości startowe po każdym wczytaniu danych
+  useEffect(() => {
+    setModsSell(data.for_sell.map((g) => parseMod(g.modifier_display)));
+    setModsBuy(data.buy_offers.map((g) => parseMod(g.modifier_display)));
+  }, [data]);
+
+  // Handlery +/- (krok 1%)
+  const changeSellMod = (idx, delta) =>
+    setModsSell((arr) => {
+      const next = [...arr];
+      const cur = Number(next[idx] ?? parseMod(data.for_sell[idx]?.modifier_display));
+      next[idx] = clamp(cur + delta, -90, 200);
+      return next;
+    });
+
+  const changeBuyMod = (idx, delta) =>
+    setModsBuy((arr) => {
+      const next = [...arr];
+      const cur = Number(next[idx] ?? parseMod(data.buy_offers[idx]?.modifier_display));
+      next[idx] = clamp(cur + delta, -90, 200);
+      return next;
+    });
+
+
   const refresh = async () => {
     setLoading(true);
     setError("");
@@ -207,26 +246,30 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
     const sum = { zk: 0, ss: 0 };
     data.for_sell.forEach((item, idx) => {
       const q = Number(buyQty[idx] || 0);
-      const price = Number(item.real_price || 0);
+      const mod = Number(modsSell[idx] ?? parseMod(item.modifier_display));
+      const price = realFrom(item.market_price, mod); // ZAMIANA
       const v = q * price;
       if (item.price_unit === "zk") sum.zk += v;
-      else sum.ss += v; // "ss"
+      else sum.ss += v;
     });
     return sum;
-  }, [data, buyQty]);
+  }, [data, buyQty, modsSell]);
+  
 
   // ile kupiec płaci Tobie za Twoje towary (sekcja buy_offers)
   const receiveTotals = useMemo(() => {
     const sum = { zk: 0, ss: 0 };
     data.buy_offers.forEach((item, idx) => {
       const q = Number(sellQty[idx] || 0);
-      const price = Number(item.real_price || 0);
+      const mod = Number(modsBuy[idx] ?? parseMod(item.modifier_display));
+      const price = realFrom(item.market_price, mod); // ZAMIANA
       const v = q * price;
       if (item.price_unit === "zk") sum.zk += v;
       else sum.ss += v;
     });
     return sum;
-  }, [data, sellQty]);
+  }, [data, sellQty, modsBuy]);
+  
 
   // bilans = receive − pay (w szelągach i z powrotem)
   const netTotals = useMemo(() => {
@@ -338,9 +381,35 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
                   {coinSpan(g.market_price, g.price_unit)}
                 </div>,
                 <div className="flex items-center gap-2">
-                  {coinSpan(g.real_price, g.price_unit)}
-                  <span className="text-xs text-amber-900/70">({g.modifier_display})</span>
-                </div>,
+                {(() => {
+                  const mod = Number(modsSell[idx] ?? parseMod(g.modifier_display));
+                  const price = realFrom(g.market_price, mod);
+                  return (
+                    <>
+                      {coinSpan(price, g.price_unit)}
+                      <div className="ml-1 inline-flex items-center rounded-lg border border-amber-900/30 bg-amber-100/60">
+                        <button
+                          type="button"
+                          onClick={() => changeSellMod(idx, -10)}
+                          className="px-1.5 py-0.5 text-xs hover:bg-amber-900/10"
+                          title="Mniejszy modyfikator"
+                        >
+                          −
+                        </button>
+                        <span className="px-1.5 text-xs w-12 text-center">{fmtMod(mod)}</span>
+                        <button
+                          type="button"
+                          onClick={() => changeSellMod(idx, +10)}
+                          className="px-1.5 py-0.5 text-xs hover:bg-amber-900/10"
+                          title="Większy modyfikator"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>,
                 formatNum(g.quantity),
                 <QtyInput
                   value={buyQty[idx] || 0}
@@ -377,8 +446,34 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
                 </div>,
                 coinSpan(g.market_price, g.price_unit),
                 <div className="flex items-center gap-2">
-                  {coinSpan(g.real_price, g.price_unit)}
-                  <span className="text-xs text-amber-900/70">({g.modifier_display})</span>
+                  {(() => {
+                    const mod = Number(modsBuy[idx] ?? parseMod(g.modifier_display));
+                    const price = realFrom(g.market_price, mod);
+                    return (
+                      <>
+                        {coinSpan(price, g.price_unit)}
+                        <div className="ml-1 inline-flex items-center rounded-lg border border-amber-900/30 bg-amber-100/60">
+                          <button
+                            type="button"
+                            onClick={() => changeBuyMod(idx, -1)}
+                            className="px-1.5 py-0.5 text-xs hover:bg-amber-900/10"
+                            title="Mniejszy modyfikator"
+                          >
+                            −
+                          </button>
+                          <span className="px-1.5 text-xs w-12 text-center">{fmtMod(mod)}</span>
+                          <button
+                            type="button"
+                            onClick={() => changeBuyMod(idx, +1)}
+                            className="px-1.5 py-0.5 text-xs hover:bg-amber-900/10"
+                            title="Większy modyfikator"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>,
                 formatNum(g.quantity),
                 <QtyInput
