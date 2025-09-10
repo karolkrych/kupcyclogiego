@@ -246,10 +246,10 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
 
   return (
     <div className="relative">
-      {/* TŁO – pełny ekran, niezależne od kontenera */}
+      {/* TŁO – pełny ekran */}
       <div
         aria-hidden
-        className="fixed inset-0 -z-20"
+        className="fixed inset-0 z-0"
         style={{
           backgroundColor: "#5b3b2a",
           backgroundImage:
@@ -258,27 +258,27 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
       />
       <div
         aria-hidden
-        className="fixed inset-0 -z-10 bg-[radial-gradient(70%_60%_at_50%_50%,rgba(0,0,0,0)_0%,rgba(0,0,0,0.45)_100%)]"
+        className="fixed inset-0 z-[1] bg-[radial-gradient(70%_60%_at_50%_50%,rgba(0,0,0,0)_0%,rgba(0,0,0,0.45)_100%)]"
       />
   
-      {/* OBRAZY POV PO BOKACH – zawsze przy krawędziach okna */}
+      {/* OBRAZY POV PO BOKACH – ponad tłem, pod UI */}
       <img
         src={leftPOV}
         alt=""
         loading="lazy"
         decoding="async"
-        className="pointer-events-none select-none fixed left-0 bottom-0 hidden xl:block h-[92vh] max-w-none object-contain -z-10 drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
+        className="pointer-events-none select-none fixed left-0 bottom-0 hidden lg:block h-[92vh] max-w-none object-contain z-[2] drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
       />
       <img
         src={rightPOV}
         alt=""
         loading="lazy"
         decoding="async"
-        className="pointer-events-none select-none fixed right-0 bottom-0 hidden xl:block h-[92vh] max-w-none object-contain -z-10 drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
+        className="pointer-events-none select-none fixed right-0 bottom-0 hidden lg:block h-[92vh] max-w-none object-contain z-[2] drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
       />
   
-      {/* BLOK CENTRALNY – interfejs na ŚRODKU ekranu */}
-      <main className="relative z-10 flex min-h-screen w-screen items-center justify-center px-3 sm:px-6">
+      {/* BLOK CENTRALNY – interfejs na środku */}
+      <main className="relative z-[10] flex min-h-screen w-screen items-center justify-center px-3 sm:px-6">
         <div className="w-full max-w-6xl p-4 md:p-8">
           {/* Header */}
           <motion.header
@@ -313,13 +313,9 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
               </div>
               {coinBadge(formatBucketsAsZkSs(netTotals))}
             </div>
-            {loading && (
-              <p className="mt-3 text-amber-900">Ładowanie danych z targu...</p>
-            )}
+            {loading && <p className="mt-3 text-amber-900">Ładowanie danych z targu...</p>}
             {!!error && (
-              <p className="mt-3 text-red-800">
-                {error} – pokazano przykładowe dane.
-              </p>
+              <p className="mt-3 text-red-800">{error} – pokazano przykładowe dane.</p>
             )}
           </motion.header>
   
@@ -343,9 +339,7 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
                 </div>,
                 <div className="flex items-center gap-2">
                   {coinSpan(g.real_price, g.price_unit)}
-                  <span className="text-xs text-amber-900/70">
-                    ({g.modifier_display})
-                  </span>
+                  <span className="text-xs text-amber-900/70">({g.modifier_display})</span>
                 </div>,
                 formatNum(g.quantity),
                 <QtyInput
@@ -356,12 +350,9 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
               ])}
               footer={
                 <div className="flex flex-wrap items-center justify-end gap-3">
-                  <span className="text-sm">
-                    Waga zakupów: {formatNum(totalWeightBuy)} kg
-                  </span>
+                  <span className="text-sm">Waga zakupów: {formatNum(totalWeightBuy)} kg</span>
                   <span className="ml-2 text-sm">
-                    Do zapłaty kupcowi:{" "}
-                    {coinBadge(formatBucketsAsZkSs(payTotals))}
+                    Do zapłaty kupcowi: {coinBadge(formatBucketsAsZkSs(payTotals))}
                   </span>
                 </div>
               }
@@ -387,9 +378,7 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
                 coinSpan(g.market_price, g.price_unit),
                 <div className="flex items-center gap-2">
                   {coinSpan(g.real_price, g.price_unit)}
-                  <span className="text-xs text-amber-900/70">
-                    ({g.modifier_display})
-                  </span>
+                  <span className="text-xs text-amber-900/70">({g.modifier_display})</span>
                 </div>,
                 formatNum(g.quantity),
                 <QtyInput
@@ -413,5 +402,5 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
         </div>
       </main>
     </div>
-  );
+  );  
 }
