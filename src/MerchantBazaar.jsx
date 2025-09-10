@@ -245,39 +245,40 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
   }, [data, buyQty]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#5b3b2a]">
-      {/* tło: drewniane deski + winieta */}
+    <div className="relative">
+      {/* TŁO – pełny ekran, niezależne od kontenera */}
       <div
         aria-hidden
-        className="absolute inset-0"
+        className="fixed inset-0 -z-20"
         style={{
+          backgroundColor: "#5b3b2a",
           backgroundImage:
             "repeating-linear-gradient(90deg, #6b442c 0 180px, #734a31 180px 184px)",
         }}
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_50%,rgba(0,0,0,0)_0%,rgba(0,0,0,0.45)_100%)]"
+        className="fixed inset-0 -z-10 bg-[radial-gradient(70%_60%_at_50%_50%,rgba(0,0,0,0)_0%,rgba(0,0,0,0.45)_100%)]"
       />
   
-      {/* OBRAZY PO BOKACH */}
+      {/* OBRAZY POV PO BOKACH – zawsze przy krawędziach okna */}
       <img
         src={leftPOV}
         alt=""
         loading="lazy"
         decoding="async"
-        className="pointer-events-none select-none hidden lg:block absolute left-0 bottom-0 h-[92vh] max-w-none object-contain z-0 drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
+        className="pointer-events-none select-none fixed left-0 bottom-0 hidden xl:block h-[92vh] max-w-none object-contain -z-10 drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
       />
       <img
         src={rightPOV}
         alt=""
         loading="lazy"
         decoding="async"
-        className="pointer-events-none select-none hidden lg:block absolute right-0 bottom-0 h-[92vh] max-w-none object-contain z-0 drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
+        className="pointer-events-none select-none fixed right-0 bottom-0 hidden xl:block h-[92vh] max-w-none object-contain -z-10 drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
       />
   
-      {/* BLOK CENTRALNY – UI na środku ekranu */}
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-3 sm:px-6">
+      {/* BLOK CENTRALNY – interfejs na ŚRODKU ekranu */}
+      <main className="relative z-10 flex min-h-screen w-screen items-center justify-center px-3 sm:px-6">
         <div className="w-full max-w-6xl p-4 md:p-8">
           {/* Header */}
           <motion.header
@@ -410,7 +411,7 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
             <p>© Karczma „Moxi”. Interfejs inspirowany pergaminem i Lochportem.</p>
           </footer>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
