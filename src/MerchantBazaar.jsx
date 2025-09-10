@@ -41,6 +41,11 @@ const Section = ({ title, icon, children }) => (
 );
 
 
+// losowa gotówka kupca (500–2000)
+const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const getRandomCash = () => randInt(500, 2000);
+
+
 function formatNum(n) {
   return Number(n).toLocaleString("pl-PL", { maximumFractionDigits: 2 });
 }
@@ -194,6 +199,8 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
   const [modsSell, setModsSell] = useState([]); // indeks = idx z data.for_sell
   const [modsBuy, setModsBuy]   = useState([]); // indeks = idx z data.buy_offers
 
+  const [merchantCash, setMerchantCash] = useState(() => getRandomCash());
+
   // Ustaw wartości startowe po każdym wczytaniu danych
   useEffect(() => {
     setModsSell(data.for_sell.map((g) => parseMod(g.modifier_display)));
@@ -226,6 +233,7 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
       if (!res.ok) throw new Error("Błąd pobierania danych");
       const json = await res.json();
       setData(json);
+      setMerchantCash(getRandomCash());
       setBuyQty({});
       setSellQty({});
     } catch (e) {
@@ -353,6 +361,10 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
               <div className="inline-flex items-center gap-2 rounded-xl border border-amber-900/30 bg-amber-100/70 px-3 py-1.5">
                 <Scale className="h-4 w-4" /> Waga karawany kupca:{" "}
                 {formatNum(data.total_weight)} kg
+              </div>
+              <div className="inline-flex items-center gap-2 rounded-xl border border-amber-900/30 bg-amber-100/70 px-3 py-1.5">
+                <Coins className="h-4 w-4" />
+                Gotówka kupca: {formatNum(merchantCash)} zk
               </div>
               {coinBadge(formatBucketsAsZkSs(netTotals))}
             </div>
