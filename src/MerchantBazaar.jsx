@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Minus, Plus, RefreshCcw, Scale, Coins, ShoppingCart, PackageSearch } from "lucide-react";
 import pergamin from "./assets/pergamin.svg";
-import leftPOV from "./assets/left_pov.png";
-import rightPOV from "./assets/right_pov.png";
+import leftPOV from "./assets/leftpov.png";
+import rightPOV from "./assets/rightpov.png";
 
 
 /**
