@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Minus, Plus, RefreshCcw, Scale, Coins, ShoppingCart, PackageSearch } from "lucide-react";
 import pergamin from "./assets/pergamin.svg";
+import leftPOV from "./assets/left_pov.png";
+import rightPOV from "./assets/right_pov.png";
 
 
 /**
@@ -243,141 +245,172 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
   }, [data, buyQty]);
 
   return (
-    <div className="mx-auto max-w-6xl p-4 md:p-8">
-      {/* Header */}
-      <motion.header
-        variants={frame}
-        initial="hidden"
-        animate="show"
-        className="mb-6 rounded-3xl border border-amber-900/40 bg-gradient-to-b from-amber-100 to-amber-50 p-5 shadow">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="font-serif text-3xl md:text-4xl text-amber-950 drop-shadow-sm">
-              Kupcy Baniaka – Targ Miejski
-            </h1>
-            <p className="mt-1 text-amber-900/80">
-              Wieści niosą ceny dnia. Targowisko szumi jak las – targuj się mądrze!
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={refresh}
-              className="inline-flex items-center gap-2 rounded-2xl border border-amber-900/40 bg-amber-100/50 px-3 py-2 text-amber-900 hover:bg-amber-200/60"
-            >
-              <RefreshCcw className="h-4 w-4" /> Odśwież
-            </button>
-          </div>
-        </div>
-        <div className="mt-4 flex flex-wrap items-center gap-4 text-amber-900">
-          <div className="inline-flex items-center gap-2 rounded-xl border border-amber-900/30 bg-amber-100/70 px-3 py-1.5">
-            <Scale className="h-4 w-4" /> Waga karawany kupca: {formatNum(data.total_weight)} kg
-          </div>
-          {coinBadge(formatBucketsAsZkSs(netTotals))}
-        </div>
-        {loading && (
-          <p className="mt-3 text-amber-900">Ładowanie danych z targu...</p>
-        )}
-        {!!error && (
-          <p className="mt-3 text-red-800">{error} – pokazano przykładowe dane.</p>
-        )}
-      </motion.header>
-
-      {/* Merchant sells to player */}
-      <Section title="Kupiec oferuje" icon={<PackageSearch className="h-5 w-5" />}>
-        <ParchmentTable
-          columns={[
-            "Towar",
-            "Cena rynkowa (za sztukę)",
-            "Cena rzeczywista",
-            "Dostępność",
-            "Transakcja",
-          ]}
-          rows={data.for_sell.map((g, idx) => [
-            (
-              <div className="flex flex-col">
-                <span className="font-medium">{g.name}</span>
-                <span className="text-xs text-amber-900/70">{g.unit}</span>
+    <div className="relative min-h-screen overflow-hidden bg-[#5b3b2a]">
+      {/* tło: drewniane deski + winieta */}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(90deg, #6b442c 0 180px, #734a31 180px 184px)",
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_50%,rgba(0,0,0,0)_0%,rgba(0,0,0,0.45)_100%)]"
+      />
+  
+      {/* OBRAZY PO BOKACH */}
+      <img
+        src={leftPOV}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="pointer-events-none select-none hidden lg:block absolute left-0 bottom-0 h-[92vh] max-w-none object-contain z-0 drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
+      />
+      <img
+        src={rightPOV}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="pointer-events-none select-none hidden lg:block absolute right-0 bottom-0 h-[92vh] max-w-none object-contain z-0 drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
+      />
+  
+      {/* BLOK CENTRALNY – UI na środku ekranu */}
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-3 sm:px-6">
+        <div className="w-full max-w-6xl p-4 md:p-8">
+          {/* Header */}
+          <motion.header
+            variants={frame}
+            initial="hidden"
+            animate="show"
+            className="mb-6 rounded-3xl border border-amber-900/40 bg-gradient-to-b from-amber-100 to-amber-50 p-5 shadow"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h1 className="font-serif text-3xl md:text-4xl text-amber-950 drop-shadow-sm">
+                  Kupcy Baniaka – Targ Miejski
+                </h1>
+                <p className="mt-1 text-amber-900/80">
+                  Wieści niosą ceny dnia. Targowisko szumi jak las – targuj się
+                  mądrze!
+                </p>
               </div>
-            ),
-            (
               <div className="flex items-center gap-2">
-                {coinSpan(g.market_price, g.price_unit)}
+                <button
+                  onClick={refresh}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-amber-900/40 bg-amber-100/50 px-3 py-2 text-amber-900 hover:bg-amber-200/60"
+                >
+                  <RefreshCcw className="h-4 w-4" /> Odśwież
+                </button>
               </div>
-            ),
-            (
-              <div className="flex items-center gap-2">
-                {coinSpan(g.real_price, g.price_unit)}
-                <span className="text-xs text-amber-900/70">({g.modifier_display})</span>
-              </div>
-            ),
-            formatNum(g.quantity),
-            (
-              <QtyInput
-                value={buyQty[idx] || 0}
-                onChange={(v) => setBuyQty((s) => ({ ...s, [idx]: v }))}
-                max={g.quantity}
-              />
-            ),
-          ])}
-          footer={
-            <div className="flex flex-wrap items-center justify-end gap-3">
-              <span className="text-sm">Waga zakupów: {formatNum(totalWeightBuy)} kg</span>
-              <span className="ml-2 text-sm">
-                Do zapłaty kupcowi: {coinBadge(formatBucketsAsZkSs(payTotals))}
-              </span>
             </div>
-          }
-        />
-      </Section>
-
-      {/* Player sells to merchant */}
-      <div className="h-6" />
-      <Section title="Kupiec chce kupić" icon={<ShoppingCart className="h-5 w-5" />}>
-        <ParchmentTable
-          columns={[
-            "Towar",
-            "Cena rynkowa (maksymalna)",
-            "Cena rzeczywista (maks.)",
-            "Ilość",
-            "Transakcja",
-          ]}
-          rows={data.buy_offers.map((g, idx) => [
-            (
-              <div className="flex flex-col">
-                <span className="font-medium">{g.name}</span>
-                <span className="text-xs text-amber-900/70">{g.unit}</span>
+            <div className="mt-4 flex flex-wrap items-center gap-4 text-amber-900">
+              <div className="inline-flex items-center gap-2 rounded-xl border border-amber-900/30 bg-amber-100/70 px-3 py-1.5">
+                <Scale className="h-4 w-4" /> Waga karawany kupca:{" "}
+                {formatNum(data.total_weight)} kg
               </div>
-            ),
-            coinSpan(g.market_price, g.price_unit),
-            (
-              <div className="flex items-center gap-2">
-                {coinSpan(g.real_price, g.price_unit)}
-                <span className="text-xs text-amber-900/70">({g.modifier_display})</span>
-              </div>
-            ),
-            formatNum(g.quantity),
-            (
-              <QtyInput
-                value={sellQty[idx] || 0}
-                onChange={(v) => setSellQty((s) => ({ ...s, [idx]: v }))}
-                max={g.quantity}
-              />
-            ),
-          ])}
-          footer={
-            <div className="flex flex-wrap items-center justify-end gap-3">
-              <span className="text-sm">Należność dla Ciebie:</span>
-              {coinBadge(formatBucketsAsZkSs(receiveTotals))}
+              {coinBadge(formatBucketsAsZkSs(netTotals))}
             </div>
-          }
-        />
-      </Section>
-
-      <footer className="mt-8 text-center text-xs text-amber-900/70">
-        <p>
-          © Karczma „Moxi”. Interfejs inspirowany pergaminem i Lochportem.
-        </p>
-      </footer>
+            {loading && (
+              <p className="mt-3 text-amber-900">Ładowanie danych z targu...</p>
+            )}
+            {!!error && (
+              <p className="mt-3 text-red-800">
+                {error} – pokazano przykładowe dane.
+              </p>
+            )}
+          </motion.header>
+  
+          {/* Merchant sells to player */}
+          <Section title="Kupiec oferuje" icon={<PackageSearch className="h-5 w-5" />}>
+            <ParchmentTable
+              columns={[
+                "Towar",
+                "Cena rynkowa (za sztukę)",
+                "Cena rzeczywista",
+                "Dostępność",
+                "Transakcja",
+              ]}
+              rows={data.for_sell.map((g, idx) => [
+                <div className="flex flex-col">
+                  <span className="font-medium">{g.name}</span>
+                  <span className="text-xs text-amber-900/70">{g.unit}</span>
+                </div>,
+                <div className="flex items-center gap-2">
+                  {coinSpan(g.market_price, g.price_unit)}
+                </div>,
+                <div className="flex items-center gap-2">
+                  {coinSpan(g.real_price, g.price_unit)}
+                  <span className="text-xs text-amber-900/70">
+                    ({g.modifier_display})
+                  </span>
+                </div>,
+                formatNum(g.quantity),
+                <QtyInput
+                  value={buyQty[idx] || 0}
+                  onChange={(v) => setBuyQty((s) => ({ ...s, [idx]: v }))}
+                  max={g.quantity}
+                />,
+              ])}
+              footer={
+                <div className="flex flex-wrap items-center justify-end gap-3">
+                  <span className="text-sm">
+                    Waga zakupów: {formatNum(totalWeightBuy)} kg
+                  </span>
+                  <span className="ml-2 text-sm">
+                    Do zapłaty kupcowi:{" "}
+                    {coinBadge(formatBucketsAsZkSs(payTotals))}
+                  </span>
+                </div>
+              }
+            />
+          </Section>
+  
+          {/* Player sells to merchant */}
+          <div className="h-6" />
+          <Section title="Kupiec chce kupić" icon={<ShoppingCart className="h-5 w-5" />}>
+            <ParchmentTable
+              columns={[
+                "Towar",
+                "Cena rynkowa (maksymalna)",
+                "Cena rzeczywista (maks.)",
+                "Ilość",
+                "Transakcja",
+              ]}
+              rows={data.buy_offers.map((g, idx) => [
+                <div className="flex flex-col">
+                  <span className="font-medium">{g.name}</span>
+                  <span className="text-xs text-amber-900/70">{g.unit}</span>
+                </div>,
+                coinSpan(g.market_price, g.price_unit),
+                <div className="flex items-center gap-2">
+                  {coinSpan(g.real_price, g.price_unit)}
+                  <span className="text-xs text-amber-900/70">
+                    ({g.modifier_display})
+                  </span>
+                </div>,
+                formatNum(g.quantity),
+                <QtyInput
+                  value={sellQty[idx] || 0}
+                  onChange={(v) => setSellQty((s) => ({ ...s, [idx]: v }))}
+                  max={g.quantity}
+                />,
+              ])}
+              footer={
+                <div className="flex flex-wrap items-center justify-end gap-3">
+                  <span className="text-sm">Należność dla Ciebie:</span>
+                  {coinBadge(formatBucketsAsZkSs(receiveTotals))}
+                </div>
+              }
+            />
+          </Section>
+  
+          <footer className="mt-8 text-center text-xs text-amber-900/70">
+            <p>© Karczma „Moxi”. Interfejs inspirowany pergaminem i Lochportem.</p>
+          </footer>
+        </div>
+      </div>
     </div>
   );
 }
