@@ -455,7 +455,7 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
                         <div className="ml-1 inline-flex items-center rounded-lg border border-amber-900/30 bg-amber-100/60">
                           <button
                             type="button"
-                            onClick={() => changeBuyMod(idx, -1)}
+                            onClick={() => changeBuyMod(idx, -10)}
                             className="px-1.5 py-0.5 text-xs hover:bg-amber-900/10"
                             title="Mniejszy modyfikator"
                           >
@@ -464,7 +464,7 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
                           <span className="px-1.5 text-xs w-12 text-center">{fmtMod(mod)}</span>
                           <button
                             type="button"
-                            onClick={() => changeBuyMod(idx, +1)}
+                            onClick={() => changeBuyMod(idx, +10)}
                             className="px-1.5 py-0.5 text-xs hover:bg-amber-900/10"
                             title="Większy modyfikator"
                           >
