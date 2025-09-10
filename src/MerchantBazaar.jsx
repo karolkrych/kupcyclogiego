@@ -267,14 +267,14 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
         alt=""
         loading="lazy"
         decoding="async"
-        className="pointer-events-none select-none fixed left-0 bottom-0 hidden lg:block h-[92vh] max-w-none object-contain z-[2] drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
+        className="pointer-events-none select-none fixed left-0 bottom-[-8vh] hidden lg:block h-[125vh] max-w-none object-contain z-[2] drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
       />
       <img
         src={rightPOV}
         alt=""
         loading="lazy"
         decoding="async"
-        className="pointer-events-none select-none fixed right-0 bottom-0 hidden lg:block h-[92vh] max-w-none object-contain z-[2] drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
+        className="pointer-events-none select-none fixed right-0 bottom-[-8vh] hidden lg:block h-[125vh] max-w-none object-contain z-[2] drop-shadow-[0_16px_24px_rgba(0,0,0,0.6)]"
       />
   
       {/* BLOK CENTRALNY – interfejs na środku */}
@@ -396,8 +396,8 @@ export default function MerchantBazaar({ apiUrl = "https://karolkrych.pythonanyw
             />
           </Section>
   
-          <footer className="mt-8 text-center text-xs text-amber-900/70">
-            <p>© Karczma „Moxi”. Interfejs inspirowany pergaminem i Lochportem.</p>
+          <footer className="mt-8 text-center text-xs text-amber-800/80">
+            <p>© Karczma „Sen o Moksymilianie”. Interfejs inspirowany pergaminem i Lochportem.</p>
           </footer>
         </div>
       </main>
